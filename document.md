@@ -1,149 +1,127 @@
 ﻿<!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/sangeethnandakumar/Twileloop.UOW">
-    <img src="https://iili.io/HPIj6ss.png" alt="Logo" width="80" height="80">
+  <a href="https://github.com/sangeethnandakumar/Twileloop.FileStorage">
+    <img src="https://iili.io/HtlRCjn.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h1 align="center"> Twileloop.UOW</h1>
-  <h4 align="center"> LiteDB | MongoDB </h4>
+  <h1 align="center"> Twileloop.FileStorage</h1>
+  <h4 align="center"> XML | Deflated | FileStorage </h4>
 </div>
 
 ## About
-A lightweight and ready-made implementation of unit of work pattern + NoSQL database. 
+A lightweight and ready-made implementation of file persistence for storing your app data or files. 
 
-Twileloop.UOW is a package that ships a plug and play model predefined repository, unit of work pattern on top of 2 popular NoSQL databases.
-There are 2 varients of Twileloop.UOW for LiteDB and MongoDB support
+Twileloop.FileStorage is a package that ships with a built-in XML encoder and decoder and GZip deflate compressor and decompressor. This allows you to effortlessly read and write your app-generated files, config, or your data files with ease.
 
 ## License
-> Twileloop.UOW.LiteDB & Twileloop.UOW.MongoDB - are licensed under the MIT License. See the LICENSE file for more details.
+> Twileloop.FileStorage - is licensed under the MIT License. See the LICENSE file for more details.
 
 #### This library is absolutely free. If it gives you a smile, A small coffee would be a great way to support my work. Thank you for considering it!
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/sangeethnanda)
 
 ## Usage
-***To get started, You have to select which package to install:***
-
-- If you prefer to use file-based database, Install Twileloop.UOW with LiteDB support. Install `Twileloop.UOW.LiteDB` package
-- If you prefer to use a centrally deployed MongoDB database, Install Twileloop.UOW with MongoDB support. Install `Twileloop.UOW.MongoDB` package
-
-<hr/>
-
 
 ## 2. Install Package
 
-> Choose the installation that suites your need
-
-| Driver | To Use | Install Package   
-| :---: | :---:   | :---:
-| <img src="https://iili.io/HPIj6ss.png" alt="Logo" height="30"> | LiteDB | `dotnet add package Twileloop.UOW.LiteDB`  
-| <img src="https://iili.io/HPIj6ss.png" alt="Logo" height="30"> | MongoDB | `dotnet add package Twileloop.UOW.MongoDB`  
+```powershell
+dotnet add package Twileloop.FileStorage
+```
 
 ### Supported Features
 
-| Feature     | LiteDB | MongoDB
-| ---      | ---       | ---
-| Create | ✅ | ✅
-| Read | ✅ | ✅
-| Update | ✅ | ✅
-| Delete | ✅ | ✅
-| Full Repository Access | ✅ | ✅
-| Multiple Databases | ✅ | ✅
-| Database Level Transactions | ✅ | ❌
+| Feature     | Status 
+| ---      | ---
+| XML Encoding/Decoding | ✅
+| GZip Deflate Compression/Decompression | ✅
+| Read | ✅
+| Write | ✅
+| Get File Details | ✅
+| Asynchronous Operations | ❌
 
 
 ✅ - Available &nbsp;&nbsp;&nbsp; 
 🚧 - Work In Progress &nbsp;&nbsp;&nbsp; 
 ❌ - Not Available
 
-
-## 1. Register all databases (ASP.NET dependency injection)
-```csharp
-//LiteDB
-builder.Services.AddUnitOfWork((uow) => {
-    uow.Connections = new List<LiteDBConnection>
-    {
-        new LiteDBConnection("DatabaseA", "Filename=DatabaseA.db; Mode=Shared; Password=****;"),
-        new LiteDBConnection("DatabaseB", "Filename=DatabaseB.db; Mode=Shared; Password=****;")
-    };
-});
-
-//MongoDB
-builder.Services.AddUnitOfWork((uow) => {
-    uow.Connections = new List<MongoDBConnection>
-    {
-        new MongoDBConnection("DatabaseA", "mongodb+srv://Uername:****@Cluster"),
-        new MongoDBConnection("DatabaseB", "mongodb+srv://Uername:****@Cluster")
-    };
-});
-```
-
-## 2. For Non Dependency Injection Setup (Like Console apps)
-```csharp
-//LiteDB
-var context = LiteDB.Support.Extensions.BuildDbContext(option =>
-    {
-        option.Connections = new List<LiteDBConnection>
-        {
-            new LiteDBConnection("DatabaseA", "Filename=DatabaseA.db; Mode=Shared; Password=****;"),
-            new LiteDBConnection("DatabaseB", "Filename=DatabaseB.db; Mode=Shared; Password=****;")
-        };
-    });
-var uow = new LiteDB.Core.UnitOfWork(context);
-
-//MongoDB
-var context = MongoDB.Support.Extensions.BuildDbContext(option =>
-    {
-        option.Connections = new List<MongoDBConnection>
-        {
-            new MongoDBConnection("DatabaseA", "mongodb+srv://Username:****@Cluster"),
-            new MongoDBConnection("DatabaseB", "mongodb+srv://Username:****@Cluster")
-        };
-    });
-var uow = new MongoDB.Core.UnitOfWork(context);
-```
-
 ### PLEASE NOTE
-❌ - BSON Serialization will work only on serializable properties. Objects like `DataTable` etc.. are non-generic which can't be stored as in DB
+✅ - `Twileloop.FileStorage` depends on `YAXLib` to enable XML encoding and decoding of all types. This allows more convenience than the native `System.Xml`. A common example is storing `Dictionary<K, V>`. You can use any types with confidence
 
-## 3. Inject and Use as required
+## 1. Declare your app model (POCO)
 ```csharp
-    [ApiController]
-    public class HomeController : ControllerBase 
+ public class Student
+ {
+     public int Id { get; set; }
+     public string FirstName { get; set; }
+     public string LastName { get; set; }
+     public DateTime DateOfBirth { get; set; }
+ }
+```
+
+## 2. Put your data into your model
+```csharp
+var students = new List<Student>() {
+    new Student
     {
-        private readonly UnitOfWork uow;
-
-        public HomeController(UnitOfWork uow)
-        {
-            this.uow = uow;
-        }
-
-        [HttpGet]
-        public IActionResult Get() 
-        {            
-            try
-            {
-                // Step 1: Point to a database
-                uow.UseDatabase("<DB_NAME>");
-
-                //Step 2: Get a repository for your model 'Dogs'
-                var dogRepo = uow.GetRepository<Dogs>();
-
-                //Step 3: Do some fetch
-                allDogs = dogRepo.GetAll().ToList();
-
-                //Step 4: Or any CRUD operations you like
-                uow.BeginTransaction();
-                dogRepo.Add(new Dog());
-                uow.Commit();
-
-                return Ok(allDogs);
-            }
-            catch(Exception)
-            {
-                uow.Rollback();
-            }            
-        }
-
+        Id = 1,
+        FirstName= "Sangeeth",
+        LastName = "Nandakumar",
+        DateOfBirth= DateTime.Now,
+    },
+    new Student
+    {
+        Id = 2,
+        FirstName= "Navaneeth",
+        LastName = "Nandakumar",
+        DateOfBirth= DateTime.Now,
+    },
+    new Student
+    {
+        Id = 3,
+        FirstName= "Surya",
+        LastName = "Nandakumar",
+        DateOfBirth= DateTime.Now,
+    },
+    new Student
+    {
+        Id = 4,
+        FirstName= "K",
+        LastName = "Nandakumar",
+        DateOfBirth= DateTime.Now,
     }
+};
+```
+
+## 3. Write into FileSystem
+```csharp
+//Step 1: Initialize persistance
+IPersistance<List<Student>> persistance = new Persistance<List<Student>>();
+
+
+//Step 2: Save to file
+if (persistance.WriteFile(students, "MyAppData.cab"))
+{
+    Console.WriteLine("File written successfully");
+}
+else
+{
+    Console.WriteLine("File writing failed");
+}
+```
+
+## 4. Read from FileSystem
+```csharp
+//Step 1: Initialize persistance
+IPersistance<List<Student>> persistance = new Persistance<List<Student>>();
+
+//Step 2: Read it back
+if (persistance.ReadFile("MyAppData.cab", out FileDetails<List<Student>> file))
+{
+    //Step 5: Optionally get file props
+    Console.WriteLine($"{file.FileName} | {file.Extension} | {file.CreatedDate} | {file.LastModifiedDate} | {file.FileLocation} | {file.FileSizeBytes}");
+}
+else
+{
+    Console.WriteLine("File reading failed");
+}
 ```
