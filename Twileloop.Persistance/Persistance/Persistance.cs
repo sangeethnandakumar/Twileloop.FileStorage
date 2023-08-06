@@ -2,9 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Threading.Tasks;
 using Twileloop.SessionGuard.Engines;
-using Twileloop.SessionGuard.Exceptions;
 using Twileloop.SessionGuard.Persistance.Internal;
 
 namespace Twileloop.SessionGuard.Persistance
@@ -12,28 +10,29 @@ namespace Twileloop.SessionGuard.Persistance
 
     public class Persistance<T> : IPersistance<T>
     {
-        public async Task<FileDetails<T>> ReadFileAsync(string filePath)
+        public bool ReadFile(string filePath, out FileDetails<T> fileDetails)
         {
             try
             {
                 using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true))
                 {
                     byte[] buffer = new byte[fileStream.Length];
-                    await fileStream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+                    fileStream.Read(buffer, 0, buffer.Length);
                     var decompressedBytes = DeflateHelper.DecompressData(buffer);
                     var xml = Encoding.UTF8.GetString(decompressedBytes);
                     var data = XmlHelper.Deserialize<T>(xml);
-                    var fileDetails = GetFileDetails(filePath, data);
-                    return fileDetails;
+                    fileDetails = GetFileDetails(filePath, data);
+                    return true;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new FileAccessException(ex, filePath, true);
+                fileDetails = null;
+                return false;
             }
         }
 
-        public async Task WriteFileAsync(T state, string filePath)
+        public bool WriteFile(T state, string filePath)
         {
             try
             {
@@ -41,12 +40,13 @@ namespace Twileloop.SessionGuard.Persistance
                 var compresedBytes = DeflateHelper.CompressData(Encoding.UTF8.GetBytes(xml), CompressionLevel.Optimal);
                 using (FileStream fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true))
                 {
-                    await fileStream.WriteAsync(compresedBytes, 0, compresedBytes.Length).ConfigureAwait(false);
+                    fileStream.Write(compresedBytes, 0, compresedBytes.Length);
                 }
+                return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new FileAccessException(ex, filePath, false);
+                return false;
             }
         }
 
