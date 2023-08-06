@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.33913.275
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Twileloop.Persistance", "Twileloop.Persistance\Twileloop.Persistance.csproj", "{022636B3-24D1-4389-95D5-205989D3C1A4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Twileloop.FileStorage", "Twileloop.FileStorage\Twileloop.FileStorage.csproj", "{022636B3-24D1-4389-95D5-205989D3C1A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Twileloop.Persistance.Demo", "Twileloop.Persistance.Demo\Twileloop.Persistance.Demo.csproj", "{E6D67C6C-5923-45F9-B7BA-09EB34A77809}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Twileloop.FileStorage.Demo", "Twileloop.FileStorage.Demo\Twileloop.FileStorage.Demo.csproj", "{E6D67C6C-5923-45F9-B7BA-09EB34A77809}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

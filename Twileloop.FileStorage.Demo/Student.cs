@@ -1,4 +1,4 @@
-﻿namespace Twileloop.Persistance.Demo
+﻿namespace Twileloop.FileStorage.Demo
 {
     public class Student
     {

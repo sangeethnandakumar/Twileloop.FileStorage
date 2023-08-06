@@ -2,7 +2,7 @@
 using YAXLib.Enums;
 using YAXLib.Options;
 
-namespace Twileloop.SessionGuard.Engines
+namespace Twileloop.FileStorage.Engines
 {
     public static class XmlHelper
     {

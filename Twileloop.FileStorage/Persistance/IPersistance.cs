@@ -1,7 +1,6 @@
-﻿using System.Threading.Tasks;
-using Twileloop.SessionGuard.Persistance.Internal;
+﻿using Twileloop.FileStorage.Persistance.Internal;
 
-namespace Twileloop.SessionGuard.Persistance
+namespace Twileloop.FileStorage.Persistance
 {
     public interface IPersistance<T>
     {

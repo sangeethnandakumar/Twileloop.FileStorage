@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+		<Nullable>disable</Nullable>
+
+		<Title>Twileloop.FileStorage</Title>
+		<Authors>Twileloop, Sangeeth Nandakumar</Authors>
+		<Company>Twileloop</Company>
+		<Product>Twileloop.FileStorage</Product>
+		<Description>A powerful file storage helper for storing and retriving application data or files, Transforms your data object into XML-encoded deflate-compressed files, making it an ideal solution for managing data files with efficient compression.</Description>
+		<Copyright>Twileloop</Copyright>
+		<PackageProjectUrl>https://github.com/sangeethnandakumar/Twileloop.FileStorage</PackageProjectUrl>
+		<PackageIcon>logo.png</PackageIcon>
+		<RepositoryUrl>https://github.com/sangeethnandakumar/Twileloop.FileStorage</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>file storage, persistence, XML, deflate-compressed</PackageTags>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="YAXLib" Version="4.1.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="logo.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
+
+</Project>

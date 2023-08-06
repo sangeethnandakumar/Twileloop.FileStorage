@@ -2,10 +2,10 @@
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using Twileloop.SessionGuard.Engines;
-using Twileloop.SessionGuard.Persistance.Internal;
+using Twileloop.FileStorage.Engines;
+using Twileloop.FileStorage.Persistance.Internal;
 
-namespace Twileloop.SessionGuard.Persistance
+namespace Twileloop.FileStorage.Persistance
 {
 
     public class Persistance<T> : IPersistance<T>

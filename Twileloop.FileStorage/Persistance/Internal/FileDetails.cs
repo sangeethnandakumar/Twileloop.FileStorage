@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Twileloop.SessionGuard.Persistance.Internal
+namespace Twileloop.FileStorage.Persistance.Internal
 {
     public class FileDetails<T>
     {
