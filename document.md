@@ -6,7 +6,7 @@
   </a>
 
   <h1 align="center"> Twileloop.FileStorage</h1>
-  <h4 align="center"> XML | Deflated | FileStorage </h4>
+  <h4 align="center"> XML Serialized | GZip Deflate Compressed | FileStorage </h4>
 </div>
 
 ## About
