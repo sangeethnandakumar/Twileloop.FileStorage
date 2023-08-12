@@ -10,35 +10,14 @@ var students = new List<Student>() {
         FirstName= "Sangeeth",
         LastName = "Nandakumar",
         DateOfBirth= DateTime.Now,
-    },
-    new Student
-    {
-        Id = 2,
-        FirstName= "Navaneeth",
-        LastName = "Nandakumar",
-        DateOfBirth= DateTime.Now,
-    },
-    new Student
-    {
-        Id = 3,
-        FirstName= "Surya",
-        LastName = "Nandakumar",
-        DateOfBirth= DateTime.Now,
-    },
-    new Student
-    {
-        Id = 4,
-        FirstName= "K",
-        LastName = "Nandakumar",
-        DateOfBirth= DateTime.Now,
     }
 };
 
 //Step 2: Initialize persistance
-IPersistance<List<Student>> persistance = new Persistance<List<Student>>();
+IFileStorage<List<Student>> persistance = new FileStorage<List<Student>>();
 
 
-//Step 3: Save to file
+//Step 3a: Save as file
 if (persistance.WriteFile(students, "MyAppData.cab"))
 {
     Console.WriteLine("File written successfully");
@@ -48,12 +27,29 @@ else
     Console.WriteLine("File writing failed");
 }
 
-
-//Step 4: Read it back
-if (persistance.ReadFile("MyAppData.cab", out FileDetails<List<Student>> file))
+//Step 3b: Save as encrypted file. For that give an encryption provider
+var aesEncryptionProvider = new MyProvider("1234", "1234567890");
+if (persistance.WriteFile(students, "MyAppData_Encrypted.cab", aesEncryptionProvider))
 {
-    //Step 5: Optionaly get file props
-    Console.WriteLine($"{file.FileName} | {file.Extension} | {file.CreatedDate} | {file.LastModifiedDate} | {file.FileLocation} | {file.FileSizeBytes}");
+    Console.WriteLine("File written successfully");
+}
+else
+{
+    Console.WriteLine("File writing failed");
+}
+
+//Step 4a: Read it back
+if (persistance.ReadFile("MyAppData.cab", out FileReadResult<List<Student>> read1))
+{
+}
+else
+{
+    Console.WriteLine("File reading failed");
+}
+
+//Step 4b: Read an encrypted file back
+if (persistance.ReadFile("MyAppData_Encrypted.cab", out FileReadResult<List<Student>> read2, aesEncryptionProvider))
+{
 }
 else
 {
