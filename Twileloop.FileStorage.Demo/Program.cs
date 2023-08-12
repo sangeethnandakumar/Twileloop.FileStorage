@@ -41,6 +41,7 @@ else
 //Step 4a: Read it back
 if (persistance.ReadFile("MyAppData.cab", out FileReadResult<List<Student>> read1))
 {
+    Console.WriteLine("File reading success");
 }
 else
 {
@@ -50,6 +51,7 @@ else
 //Step 4b: Read an encrypted file back
 if (persistance.ReadFile("MyAppData_Encrypted.cab", out FileReadResult<List<Student>> read2, aesEncryptionProvider))
 {
+    Console.WriteLine("File reading success");
 }
 else
 {
