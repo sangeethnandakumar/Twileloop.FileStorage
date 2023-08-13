@@ -1,8 +1,9 @@
 ﻿using Twileloop.FileStorage.Abstractions;
+using Twileloop.Security.Encryption;
 
 namespace Twileloop.FileStorage.Demo
 {
-    public class MyProvider : IEncryptionProvider
+    public class MyCustomSecurityProvider : IEncryptionProvider
     {
         private readonly string key;
         private readonly string iv;
@@ -15,7 +16,7 @@ namespace Twileloop.FileStorage.Demo
             IV = iv
         };
 
-        public MyProvider(string key, string iv)
+        public MyCustomSecurityProvider(string key, string iv)
         {
             this.key = key;
             this.iv = iv;
@@ -23,12 +24,14 @@ namespace Twileloop.FileStorage.Demo
 
         public byte[] Encrypt(byte[] rawData)
         {
-            return rawData;
+            //return rawData;
+            return AESAlgorithm.EncryptBytes(rawData, key, iv);
         }
 
         public byte[] Decrypt(byte[] encrypteData)
         {
-            return encrypteData;
+            //return encrypteData;
+            return AESAlgorithm.DecryptBytes(encrypteData, key, iv);
         }
 
     }

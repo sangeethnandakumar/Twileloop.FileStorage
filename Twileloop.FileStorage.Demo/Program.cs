@@ -1,7 +1,6 @@
 ﻿//Step 1: Define your data
 using Twileloop.FileStorage.Demo;
 using Twileloop.FileStorage.Persistance;
-using Twileloop.FileStorage.Persistance.Internal;
 
 var students = new List<Student>() {
     new Student
@@ -28,19 +27,20 @@ else
 }
 
 //Step 3b: Save as encrypted file. For that give an encryption provider
-var aesEncryptionProvider = new MyProvider("1234", "1234567890");
-if (persistance.WriteFile(students, "MyAppData_Encrypted.cab", aesEncryptionProvider))
+var securityProvider = new MyCustomSecurityProvider("1234", "1234567890123456");
+if (persistance.WriteFile(students, "MyAppData_Encrypted.cab", securityProvider))
 {
-    Console.WriteLine("File written successfully");
+    Console.WriteLine("AES encrypted file written successfully");
 }
 else
 {
-    Console.WriteLine("File writing failed");
+    Console.WriteLine("AES file writing failed");
 }
 
 //Step 4a: Read it back
-if (persistance.ReadFile("MyAppData.cab", out FileReadResult<List<Student>> read1))
+if (persistance.ReadFile("MyAppData.cab", out FileReadResult readerA))
 {
+    var parsedData = readerA.ParseFile<List<Student>>();
     Console.WriteLine("File reading success");
 }
 else
@@ -49,11 +49,12 @@ else
 }
 
 //Step 4b: Read an encrypted file back
-if (persistance.ReadFile("MyAppData_Encrypted.cab", out FileReadResult<List<Student>> read2, aesEncryptionProvider))
+if (persistance.ReadFile("MyAppData_Encrypted.cab", out FileReadResult readerB, securityProvider))
 {
-    Console.WriteLine("File reading success");
+    var parsedData = readerB.ParseFile<List<Student>>();
+    Console.WriteLine("AES encrypted file reading success");
 }
 else
 {
-    Console.WriteLine("File reading failed");
+    Console.WriteLine("AES encrypted file reading failed");
 }

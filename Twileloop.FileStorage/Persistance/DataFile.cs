@@ -2,10 +2,10 @@
 
 namespace Twileloop.FileStorage.Persistance
 {
-    public class FileHeader
+    public class DataFile
     {
         public string Program { get; set; }
-        public string Data { get; set; }
+        public string EncodedData { get; set; }
         public bool IsEncrypted { get; set; }
         public string EncryptionAlgorithm { get; set; }
         public long DataSize { get; set; }
