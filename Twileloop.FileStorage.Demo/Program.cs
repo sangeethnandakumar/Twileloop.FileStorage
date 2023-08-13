@@ -1,4 +1,5 @@
 ﻿//Step 1: Define your data
+using Twileloop.FileStorage;
 using Twileloop.FileStorage.Demo;
 using Twileloop.FileStorage.Persistance;
 
@@ -13,11 +14,11 @@ var students = new List<Student>() {
 };
 
 //Step 2: Initialize persistance
-IFileStorage<List<Student>> persistance = new FileStorage<List<Student>>();
+IFileStorage<List<Student>> fileStorage = new FileStorage<List<Student>>();
 
 
 //Step 3a: Save as file
-if (persistance.WriteFile(students, "MyAppData.cab"))
+if (fileStorage.WriteFile(students, "MyAppData.cab"))
 {
     Console.WriteLine("File written successfully");
 }
@@ -28,7 +29,7 @@ else
 
 //Step 3b: Save as encrypted file. For that give an encryption provider
 var securityProvider = new MyCustomSecurityProvider("1234", "1234567890123456");
-if (persistance.WriteFile(students, "MyAppData_Encrypted.cab", securityProvider))
+if (fileStorage.WriteFile(students, "MyAppData_Encrypted.cab", securityProvider))
 {
     Console.WriteLine("AES encrypted file written successfully");
 }
@@ -38,9 +39,9 @@ else
 }
 
 //Step 4a: Read it back
-if (persistance.ReadFile("MyAppData.cab", out FileReadResult readerA))
+if (fileStorage.TryReadFile("MyAppData.cab", out FileReadResult readerA))
 {
-    var parsedData = readerA.ParseFile<List<Student>>();
+    var parsedData = readerA.ParseContents<List<Student>>();
     Console.WriteLine("File reading success");
 }
 else
@@ -49,12 +50,48 @@ else
 }
 
 //Step 4b: Read an encrypted file back
-if (persistance.ReadFile("MyAppData_Encrypted.cab", out FileReadResult readerB, securityProvider))
+if (fileStorage.TryReadFile("MyAppData_Encrypted.cab", out FileReadResult readerB, securityProvider))
 {
-    var parsedData = readerB.ParseFile<List<Student>>();
+    var parsedData = readerB.ParseContents<List<Student>>();
     Console.WriteLine("AES encrypted file reading success");
 }
 else
 {
     Console.WriteLine("AES encrypted file reading failed");
+}
+
+
+//EXECEPTION HANDLING
+Console.WriteLine("_____________________________________________________________________");
+
+//Step 5a: Wrong password
+securityProvider = new MyCustomSecurityProvider("wrong_password", "1234567890123456");
+try
+{
+    if (fileStorage.TryReadFile("MyAppData_Encrypted.cab", out FileReadResult reader5a, securityProvider))
+    {
+        var parsedData = reader5a.ParseContents<List<Student>>();
+        Console.WriteLine("AES encrypted file reading success");
+    }
+
+}
+catch (InvalidPasswordException ex)
+{
+    Console.WriteLine($"{ex.Message}");
+}
+catch (UnsupportedFileException ex)
+{
+    Console.WriteLine($"{ex.Message}");
+}
+catch (EncryptionProviderException ex)
+{
+    Console.WriteLine($"{ex.Message}");
+}
+catch (LegacyFormatException ex)
+{
+    Console.WriteLine($"{ex.Message}");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"{ex.Message}");
 }

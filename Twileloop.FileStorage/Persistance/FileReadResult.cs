@@ -8,11 +8,10 @@ namespace Twileloop.FileStorage.Persistance
     public class FileReadResult
     {
         public bool IsReadSuccessfull { get; set; }
-        public Exception ReaderException { get; set; }
         public DataFile Header { get; set; }
         public FileProperties Properties { get; set; }
 
-        public T ParseFile<T>()
+        public T ParseContents<T>()
         {
             try
             {

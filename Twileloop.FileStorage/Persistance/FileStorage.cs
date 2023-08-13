@@ -2,6 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using Twileloop.FileStorage.Abstractions;
 using Twileloop.FileStorage.Engines;
@@ -12,7 +13,7 @@ namespace Twileloop.FileStorage.Persistance
 
     public class FileStorage<T> : IFileStorage<T>
     {
-        public FileReadResult ReadFile(string filePath, out FileReadResult fileReadResult, IEncryptionProvider encryptionProvider = null)
+        public FileReadResult TryReadFile(string filePath, out FileReadResult fileReadResult, IEncryptionProvider encryptionProvider = null)
         {
             fileReadResult = new FileReadResult();
             try
@@ -27,22 +28,44 @@ namespace Twileloop.FileStorage.Persistance
                     //Step 3: Deserialize data file
                     var xml = Encoding.UTF8.GetString(decompressedBytes);
                     var dataFile = XmlHelper.Deserialize<DataFile>(xml);
+                    if(!string.IsNullOrEmpty(dataFile.FileFormat) && dataFile.FileFormat != "PDR.v1")
+                    {
+                        throw new LegacyFormatException($"Reading aborted. The content of this file is not in 'PDR.v1' (Portable Data Recording) file format. This file is using '{dataFile.FileFormat}' format which was written using '{dataFile.UsedVersion}' version of Twileloop.FileStorage library. To read this file, upgrade the library to version '{dataFile.UsedVersion}+' or above version");
+                    }
                     //Step 4: Make reader output
                     fileReadResult.IsReadSuccessfull = true;
                     fileReadResult.Header = dataFile;
                     fileReadResult.Properties = GetFileProperties(filePath);
                     //Step 5: Decrypt optionaly
-                    if (encryptionProvider is not null)
+                    if (dataFile.IsEncrypted)
                     {
-                        var encryptedData = Convert.FromBase64String(dataFile.EncodedData);
-                        dataFile.EncodedData = Convert.ToBase64String(encryptionProvider.Decrypt(encryptedData));
+                        if (encryptionProvider is null)
+                        {
+                            fileReadResult.IsReadSuccessfull = false;
+                            throw new EncryptionProviderException($"This file is encrypted using '{dataFile.EncryptionAlgorithm}' algorithm. Please provide an 'EncryptionProvider' that can decrypt the contents.");
+                        }
+                        else
+                        {
+                            var encryptedData = Convert.FromBase64String(dataFile.EncodedData);
+                            dataFile.EncodedData = Convert.ToBase64String(encryptionProvider.Decrypt(encryptedData));
+                        }
                     }
                 }
             }
-            catch (Exception ex)
+            catch (CryptographicException)
             {
                 fileReadResult.IsReadSuccessfull = false;
-                fileReadResult.ReaderException = ex;
+                throw new InvalidPasswordException("Decryption failed. Please ensure the algorithms and credentials used for encryption/decryption are valid");
+            }
+            catch (InvalidDataException)
+            {
+                fileReadResult.IsReadSuccessfull = false;
+               throw new UnsupportedFileException("Decryption failed. Please ensure the algorithms and credentials used for encryption/decryption are valid");
+            }
+            catch (Exception)
+            {
+                fileReadResult.IsReadSuccessfull = false;
+                throw;
             }
             return fileReadResult;
         }
@@ -59,7 +82,7 @@ namespace Twileloop.FileStorage.Persistance
                     dataBytes = encryptionProvider.Encrypt(dataBytes);
                 }
                 //Step 3: Make data file
-                var dataFileBytes = BuildDataFile(dataBytes);
+                var dataFileBytes = BuildDataFile(dataBytes, encryptionProvider);
                 //Step 4: Compress packet
                 var compresedBytes = DeflateHelper.CompressData(dataFileBytes, CompressionLevel.Optimal);
                 //Step 5: Write to file
@@ -106,15 +129,16 @@ namespace Twileloop.FileStorage.Persistance
         }
 
         //Step 2: Build a package file
-        private byte[] BuildDataFile(byte[] data)
+        private byte[] BuildDataFile(byte[] data, IEncryptionProvider provider)
         {
             //Step 1: Serialize to XML
             var fileHeader = XmlHelper.Serialize(new DataFile
             {
                 EncodedData = Convert.ToBase64String(data),
-                Program = Assembly.GetCallingAssembly().GetName().Name,
-                IsEncrypted = false,
-                EncryptionAlgorithm = "Not Available",
+                Program = Assembly.GetCallingAssembly().FullName,
+                IsEncrypted = provider is not null,
+                EncryptionAlgorithm = provider is not null? provider.GetEncryptionAlgorithm() : "Not Available",
+                EncryptionProvider = provider is not null? provider.GetEncryptionProvider() : "Not Available",
                 FileMeta = new(),
                 DataSize = data.Length
             });

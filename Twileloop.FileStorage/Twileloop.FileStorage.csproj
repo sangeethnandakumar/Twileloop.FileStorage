@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net5.0</TargetFramework>
 		<Nullable>disable</Nullable>
-
+		<LangVersion>latest</LangVersion>
 		<Title>Twileloop.FileStorage</Title>
 		<Authors>Twileloop, Sangeeth Nandakumar</Authors>
 		<Company>Twileloop</Company>
