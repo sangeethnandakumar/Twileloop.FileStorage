@@ -41,7 +41,7 @@ else
 //Step 4a: Read it back
 if (fileStorage.TryReadFile("MyAppData.cab", out FileReadResult readerA))
 {
-    var parsedData = readerA.ParseContents<List<Student>>();
+    var myData = readerA.ParseContents<List<Student>>();
     Console.WriteLine("File reading success");
 }
 else
@@ -50,9 +50,9 @@ else
 }
 
 //Step 4b: Read an encrypted file back
-if (fileStorage.TryReadFile("MyAppData_Encrypted.cab", out FileReadResult readerB, securityProvider))
+if (fileStorage.TryReadFile("MyAppData_Encrypted.cab", out FileReadResult reader, securityProvider))
 {
-    var parsedData = readerB.ParseContents<List<Student>>();
+    var parsedData = reader.ParseContents<List<Student>>();
     Console.WriteLine("AES encrypted file reading success");
 }
 else

@@ -24,15 +24,12 @@ namespace Twileloop.FileStorage.Demo
 
         public byte[] Encrypt(byte[] rawData)
         {
-            //return rawData;
             return AESAlgorithm.EncryptBytes(rawData, key, iv);
         }
 
         public byte[] Decrypt(byte[] encrypteData)
         {
-            //return encrypteData;
             return AESAlgorithm.DecryptBytes(encrypteData, key, iv);
         }
-
     }
 }
