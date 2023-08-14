@@ -36,6 +36,8 @@ dotnet add package Twileloop.FileStorage
 | GZip Deflate Compression/Decompression | ✅
 | Read | ✅
 | Write | ✅
+| Encrypted Writes and Reads | ✅
+| Custom Encryption Provider | ✅
 | Get File Details | ✅
 | Asynchronous Operations | ❌
 
@@ -58,8 +60,9 @@ dotnet add package Twileloop.FileStorage
  }
 ```
 
-## 2. Put your data into your model
+## 2. Setup some data
 ```csharp
+//Step 2: Here's the data
 var students = new List<Student>() {
     new Student
     {
@@ -67,39 +70,19 @@ var students = new List<Student>() {
         FirstName= "Sangeeth",
         LastName = "Nandakumar",
         DateOfBirth= DateTime.Now,
-    },
-    new Student
-    {
-        Id = 2,
-        FirstName= "Navaneeth",
-        LastName = "Nandakumar",
-        DateOfBirth= DateTime.Now,
-    },
-    new Student
-    {
-        Id = 3,
-        FirstName= "Surya",
-        LastName = "Nandakumar",
-        DateOfBirth= DateTime.Now,
-    },
-    new Student
-    {
-        Id = 4,
-        FirstName= "K",
-        LastName = "Nandakumar",
-        DateOfBirth= DateTime.Now,
     }
 };
+
+//Step 3: Initialize filestorage
+IFileStorage<List<Student>> fileStorage = new FileStorage<List<Student>>();
 ```
 
-## 3. Write into FileSystem
+## 3. Simple Write
+
+> The latest version of `Twileloop.FileSystem` writes data in a custom data format called `PDR.v1` (Portable Data Recording)
+
 ```csharp
-//Step 1: Initialize persistance
-IPersistance<List<Student>> persistance = new Persistance<List<Student>>();
-
-
-//Step 2: Save to file
-if (persistance.WriteFile(students, "MyAppData.cab"))
+if (fileStorage.WriteFile(students, "MyAppData.cab"))
 {
     Console.WriteLine("File written successfully");
 }
@@ -109,19 +92,121 @@ else
 }
 ```
 
-## 4. Read from FileSystem
+## 4. Simple Read
 ```csharp
-//Step 1: Initialize persistance
-IPersistance<List<Student>> persistance = new Persistance<List<Student>>();
-
-//Step 2: Read it back
-if (persistance.ReadFile("MyAppData.cab", out FileDetails<List<Student>> file))
+if (fileStorage.TryReadFile("MyAppData.cab", out FileReadResult reader))
 {
-    //Step 5: Optionally get file props
-    Console.WriteLine($"{file.FileName} | {file.Extension} | {file.CreatedDate} | {file.LastModifiedDate} | {file.FileLocation} | {file.FileSizeBytes}");
+    var myData = reader.ParseContents<List<Student>>();
+    Console.WriteLine("File reading success");
 }
 else
 {
     Console.WriteLine("File reading failed");
+}
+```
+
+## 5. Encrypted Writes
+Performing encryption and decryption requires you to configure a custom encryption provider.
+You can use any library you choose to encrypt and decrypt your files.
+
+> In this example, We're using `Twileloop.Security` nuget package to perform AES encryption. The same package supports RSA also. Or you can write your own data transform standards
+
+#### To start with, Create a custom encryption provider. Design this class in anyway you need. Ensure it should implement `IEncryptionProvider`
+
+```csharp
+ public class MyCustomSecurityProvider : IEncryptionProvider
+ {
+        private readonly string key;
+        private readonly string iv;
+
+        public string GetEncryptionProvider() => "Twileloop.Security";
+        public string GetEncryptionAlgorithm() => "AES";
+        public Credential SetKeyAndInitialVector() => new Credential
+        {
+            Key = key,
+            IV = iv
+        };
+
+        public MyCustomSecurityProvider(string key, string iv)
+        {
+            this.key = key;
+            this.iv = iv;
+        }
+
+        public byte[] Encrypt(byte[] rawData)
+        {
+            //Do your encryption logic
+            return AESAlgorithm.EncryptBytes(rawData, key, iv);
+        }
+
+        public byte[] Decrypt(byte[] encrypteData)
+        {
+            //Do your decryption logic
+            return AESAlgorithm.DecryptBytes(encrypteData, key, iv);
+        }
+ }
+```
+
+## Once done, We'll use this provider for encrypted writes and reads
+```csharp
+//Initialize provider
+var securityProvider = new MyCustomSecurityProvider("1234", "1234567890123456");
+
+//Write data, by passing this provider
+if (fileStorage.WriteFile(students, "MyAppData_Encrypted.cab", securityProvider))
+{
+    Console.WriteLine("AES encrypted file written successfully");
+}
+else
+{
+    Console.WriteLine("AES file writing failed");
+}
+
+
+//Read data, by passing this provider
+if (fileStorage.TryReadFile("MyAppData_Encrypted.cab", out FileReadResult reader, securityProvider))
+{
+    var parsedData = reader.ParseContents<List<Student>>();
+    Console.WriteLine("AES encrypted file reading success");
+}
+else
+{
+    Console.WriteLine("AES encrypted file reading failed");
+}
+```
+
+## Exception Handling
+```csharp
+securityProvider = new MyCustomSecurityProvider("wrong_password", "1234567890123456");
+
+//Handle exceptions you need
+try
+{
+    if (fileStorage.TryReadFile("MyAppData_Encrypted.cab", out FileReadResult reader5a, securityProvider))
+    {
+        var parsedData = reader5a.ParseContents<List<Student>>();
+        Console.WriteLine("AES encrypted file reading success");
+    }
+
+}
+catch (InvalidPasswordException ex)
+{
+    Console.WriteLine($"{ex.Message}");
+}
+catch (UnsupportedFileException ex)
+{
+    Console.WriteLine($"{ex.Message}");
+}
+catch (EncryptionProviderException ex)
+{
+    Console.WriteLine($"{ex.Message}");
+}
+catch (LegacyFormatException ex)
+{
+    Console.WriteLine($"{ex.Message}");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"{ex.Message}");
 }
 ```
