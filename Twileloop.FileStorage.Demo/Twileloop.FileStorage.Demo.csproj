@@ -15,4 +15,22 @@
     <ProjectReference Include="..\Twileloop.FileStorage\Twileloop.FileStorage.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="EmbeddedFiles\Word.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="EmbeddedFiles\Video.mp4">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="EmbeddedFiles\PDF.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="EmbeddedFiles\JSON.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="EmbeddedFiles\Music.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -8,6 +8,7 @@ namespace Twileloop.FileStorage.Persistance
     {
         public string Program { get; set; }
         public string EncodedData { get; set; }
+        public string EmbeddedFiles { get; set; }
         public bool IsEncrypted { get; set; }
         public string EncryptionAlgorithm { get; set; }
         public string EncryptionProvider { get; set; }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
@@ -28,7 +29,7 @@ namespace Twileloop.FileStorage.Persistance
                     //Step 3: Deserialize data file
                     var xml = Encoding.UTF8.GetString(decompressedBytes);
                     var dataFile = XmlHelper.Deserialize<DataFile>(xml);
-                    if(!string.IsNullOrEmpty(dataFile.FileFormat) && dataFile.FileFormat != "PDR.v1")
+                    if (!string.IsNullOrEmpty(dataFile.FileFormat) && dataFile.FileFormat != "PDR.v1")
                     {
                         throw new LegacyFormatException($"Reading aborted. The content of this file is not in 'PDR.v1' (Portable Data Recording) file format. This file is using '{dataFile.FileFormat}' format which was written using '{dataFile.UsedVersion}' version of Twileloop.FileStorage library. To read this file, upgrade the library to version '{dataFile.UsedVersion}+' or above version");
                     }
@@ -60,7 +61,7 @@ namespace Twileloop.FileStorage.Persistance
             catch (InvalidDataException)
             {
                 fileReadResult.IsReadSuccessfull = false;
-               throw new UnsupportedFileException("Decryption failed. Please ensure the algorithms and credentials used for encryption/decryption are valid");
+                throw new UnsupportedFileException("Decryption failed. Please ensure the algorithms and credentials used for encryption/decryption are valid");
             }
             catch (Exception)
             {
@@ -70,19 +71,24 @@ namespace Twileloop.FileStorage.Persistance
             return fileReadResult;
         }
 
-        public bool WriteFile(T data, string filePath, IEncryptionProvider encryptionProvider = null)
+        public bool WriteFile(T data, string filePath, List<EmbeddedFile> embeddedFiles = null, Dictionary<string, string> meta = null, IEncryptionProvider encryptionProvider = null)
         {
             try
             {
                 //Step 1: Convert data to binary
                 var dataBytes = ConvertDataToBytes(data);
+                byte[] fileBytes = null;
+                if (embeddedFiles is not null)
+                {
+                    fileBytes = ConvertEmbeddedFilesToBytes(embeddedFiles);
+                }
                 //Step 2: Encrypt optionaly
                 if (encryptionProvider is not null)
                 {
                     dataBytes = encryptionProvider.Encrypt(dataBytes);
                 }
                 //Step 3: Make data file
-                var dataFileBytes = BuildDataFile(dataBytes, encryptionProvider);
+                var dataFileBytes = BuildDataFile(dataBytes, fileBytes, meta, encryptionProvider);
                 //Step 4: Compress packet
                 var compresedBytes = DeflateHelper.CompressData(dataFileBytes, CompressionLevel.Optimal);
                 //Step 5: Write to file
@@ -96,6 +102,13 @@ namespace Twileloop.FileStorage.Persistance
             {
                 return false;
             }
+        }
+
+        private byte[] ConvertEmbeddedFilesToBytes(List<EmbeddedFile> embeddedFiles)
+        {
+            var xml = XmlHelper.Serialize(embeddedFiles);
+            var xmlBytes = Encoding.UTF8.GetBytes(xml);
+            return xmlBytes;
         }
 
         private FileProperties GetFileProperties(string fileLocation)
@@ -129,19 +142,20 @@ namespace Twileloop.FileStorage.Persistance
         }
 
         //Step 2: Build a package file
-        private byte[] BuildDataFile(byte[] data, IEncryptionProvider provider)
+        private byte[] BuildDataFile(byte[] data, byte[] embeddedFiles, Dictionary<string, string> meta, IEncryptionProvider provider)
         {
             //Step 1: Serialize to XML
             var fileHeader = XmlHelper.Serialize(new DataFile
             {
                 EncodedData = Convert.ToBase64String(data),
+                EmbeddedFiles = embeddedFiles is not null ? Convert.ToBase64String(embeddedFiles) : null,
                 Program = Assembly.GetCallingAssembly().FullName,
                 IsEncrypted = provider is not null,
-                EncryptionAlgorithm = provider is not null? provider.GetEncryptionAlgorithm() : "Not Available",
-                EncryptionProvider = provider is not null? provider.GetEncryptionProvider() : "Not Available",
-                FileMeta = new(),
+                EncryptionAlgorithm = provider is not null ? provider.GetEncryptionAlgorithm() : "Not Available",
+                EncryptionProvider = provider is not null ? provider.GetEncryptionProvider() : "Not Available",
+                FileMeta = meta is not null ? meta :null,
                 DataSize = data.Length
-            });
+            }) ;
             return Encoding.UTF8.GetBytes(fileHeader);
         }
     }
