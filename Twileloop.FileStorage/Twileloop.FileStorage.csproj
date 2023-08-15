@@ -15,7 +15,6 @@
 		<RepositoryUrl>https://github.com/sangeethnandakumar/Twileloop.FileStorage</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>file storage, persistence, XML, deflate-compressed</PackageTags>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
