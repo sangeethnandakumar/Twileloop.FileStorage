@@ -39,6 +39,8 @@ dotnet add package Twileloop.FileStorage
 | Encrypted Writes and Reads | ✅
 | Custom Encryption Provider | ✅
 | Get File Details | ✅
+| Meta data embedding | ✅
+| One or more embedded Files | ✅
 | Asynchronous Operations | ❌
 
 
@@ -172,6 +174,50 @@ if (fileStorage.TryReadFile("MyAppData_Encrypted.cab", out FileReadResult reader
 else
 {
     Console.WriteLine("AES encrypted file reading failed");
+}
+```
+
+## 6. Embed Some Custom Meta Data
+Want to place some key value meta along the file? Will be super usefull to store metadata
+ou can find them in FileHeader once you read back the file.
+```csharp
+//Want to add few meta information to the file?
+var metaData = new MetaDataBuilder()
+    .AddMeta("Made Using", "Steroids")
+    .AddMeta("From", "Sangeeth Nandakumar")
+    .Build();
+
+if (fileStorage.WriteFile(students, "MyAppData_With_MetaData.cab", meta: metaData))
+{
+    Console.WriteLine("File written successfully with META data");
+}
+else
+{
+    Console.WriteLine("File writing failed with META data");
+}
+```
+
+## 7. Embed Extra Files
+Want to attach some files related to current file save?
+
+> It is recommended to not put too many files as embedded files. Embedded files works best to store dependent information such as storing user's profile photo along with his profile file or saving his signature as a PNG or SVG etc...
+
+```csharp
+var embeddedFiles = new EmbeddedFileBuilder()
+    .AddFile("JSON", @"EmbeddedFiles\JSON.json")
+    .AddFile("Music", @"EmbeddedFiles\\Music.mp3")
+    .AddFile("PDF", @"EmbeddedFiles\\PDF.pdf")
+    .AddFile("Video", @"EmbeddedFiles\\Video.mp4")
+    .AddFile("Word", @"EmbeddedFiles\\Word.docx")
+    .Build();
+
+if (fileStorage.WriteFile(students, "MyAppData_With_EmbeddedResources.cab", embeddedFiles))
+{
+    Console.WriteLine("File written successfully with EMBEDDED FILES");
+}
+else
+{
+    Console.WriteLine("File writing failed with EMBEDDED FILES");
 }
 ```
 
